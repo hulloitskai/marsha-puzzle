@@ -1,6 +1,6 @@
 # Build verification
 
-Validated on 2026-10-13 using mise-pinned Node 24.16.0 and npm 11.13.0.
+Initial standalone release validated on 2026-10-13 using mise-pinned Node 24.16.0 and npm 11.13.0.
 
 - Dependency lifecycle scripts disabled during scaffold, install, and lockfile updates; `.npmrc` persists this setting. Husky initialized explicitly.
 - Prettier check, ESLint, Node snapping test, and Vite production build pass.
@@ -13,3 +13,17 @@ Validated on 2026-10-13 using mise-pinned Node 24.16.0 and npm 11.13.0.
 Touch verification uses browser touch events, not physical hardware. Legacy starting positions can clip pieces at viewport boundaries; this matches the source. All-to-all snapping and its tolerance/drag-end quirks are deliberately preserved. Vite reports a large bundle because the original embedded artwork is retained.
 
 The GitHub Actions workflow repeats formatting, lint, snapping, production build, and Chromium browser checks before deployment. Deployed site and Pages framing are checked after the initial push.
+
+## Edge-only snapping fast-follow
+
+Implemented on 2026-10-14. Only completed-artwork edge neighbors can snap directly. Corner contact is excluded. The original distance tolerance and drag-end alignment behavior remain.
+
+For the two fixed illustrations, explicit symmetric neighbor maps replace runtime all-to-all map construction. IDs still follow the original SVG path order. Browser geometry checks sample the actual outlines every 2 SVG units and count proximity within 2 units: real shared edges measure at least 124 units, while corner-only proximity measures at most 12. A 40-unit separation validates all ten pairs per puzzle. The maps were also checked visually against labeled completed outlines.
+
+- Puzzle One: 0–1, 0–2, 0–3, 1–2, 2–4, 3–4. Pieces 0–4 and 2–3 touch only near a corner.
+- Puzzle Two: 0–1, 0–2, 0–3, 1–3, 2–3, 2–4, 3–4.
+- Four new real-input regressions first failed on the old lime highlights. They now verify that coincident non-edge pieces do not snap or move together, for both mouse and touch on both puzzles.
+- These regressions also join pieces 0 and 4 through piece 3 and verify that the resulting connected group moves together.
+- Four Node snapping/metadata tests and thirteen browser checks pass, alongside formatting, lint, and the production build.
+
+Artwork and initializers remain unchanged. If artwork or SVG path ordering changes, update and revalidate `src/assets/edge-neighbors.json`. Physical touch hardware remains untested.

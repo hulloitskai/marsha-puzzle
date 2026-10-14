@@ -1,5 +1,6 @@
 dist
 node_modules
-src/assets
+src/assets/*.svg
+src/assets/*.initializers.json
 CONTEXT.md
 docs/build-handoff.md

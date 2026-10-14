@@ -10,4 +10,4 @@ Two illustrated puzzles that visitors assemble by moving pieces.
 
 **Snapped group**: Pieces aligned together that move as a group when dragged.
 
-**Edge neighbor**: A pair of pieces sharing an edge in the completed illustration. This is the intended eligibility rule for snapping, deferred until after the initial standalone release.
+**Edge neighbor**: A pair of pieces sharing an edge in the completed illustration. Only edge neighbors can snap directly; touching at a corner does not count as sharing an edge.

@@ -163,6 +163,85 @@ for (const puzzle of [1, 2]) {
       expect(errors).toEqual([]);
     });
   }
+  for (const touch of [false, true]) {
+    test(`puzzle ${puzzle}: ${touch ? "touch" : "mouse"} rejects non-edge snapping and grouping`, async ({
+      page,
+    }) => {
+      await page.goto(`/marsha-puzzle/?puzzle=${puzzle}`);
+      await expect(page.locator("canvas")).toBeVisible();
+      await expect
+        .poll(async () => (await state(page)).pieces.every((p) => p.image))
+        .toBe(true);
+      // Move two non-neighbors to the same translation using real input.
+      for (const id of ["path-4", "path-0"]) {
+        const current = await state(page);
+        const piece = current.pieces.find((p) => p.id === id);
+        await drag(
+          page,
+          await hitPoint(page, id),
+          { x: -piece.x * current.scale, y: -piece.y * current.scale },
+          touch,
+        );
+        await expect
+          .poll(async () => {
+            const moved = (await state(page)).pieces.find((p) => p.id === id);
+            return Math.hypot(moved.x, moved.y);
+          })
+          .toBeLessThan(3);
+      }
+      const aligned = await state(page);
+      for (const id of ["path-0", "path-4"]) {
+        const piece = aligned.pieces.find((p) => p.id === id);
+        expect(Math.hypot(piece.x, piece.y)).toBeLessThan(3);
+        expect(piece.shadow).not.toBe("lime");
+      }
+      await drag(page, await hitPoint(page, "path-0"), { x: 25, y: 20 }, touch);
+      const after = await state(page);
+      expect(after.pieces.find((p) => p.id === "path-4").x).toBeCloseTo(
+        aligned.pieces.find((p) => p.id === "path-4").x,
+        3,
+      );
+      expect(after.pieces.find((p) => p.id === "path-0").x).toBeCloseTo(
+        aligned.pieces.find((p) => p.id === "path-0").x + 25 / after.scale,
+        3,
+      );
+
+      // Piece 3 shares edges with both 0 and 4, so it can join them into a group.
+      await drag(
+        page,
+        await hitPoint(page, "path-0"),
+        { x: -25, y: -20 },
+        touch,
+      );
+      const bridge = (await state(page)).pieces.find((p) => p.id === "path-3");
+      await drag(
+        page,
+        await hitPoint(page, bridge.id),
+        { x: -bridge.x * after.scale, y: -bridge.y * after.scale },
+        touch,
+      );
+      await expect
+        .poll(async () =>
+          (await state(page)).pieces
+            .filter((p) => ["path-0", "path-3", "path-4"].includes(p.id))
+            .every((p) => p.shadow === "lime"),
+        )
+        .toBe(true);
+      const connected = await state(page);
+      await drag(page, await hitPoint(page, "path-0"), { x: 25, y: 20 }, touch);
+      const movedGroup = await state(page);
+      for (const id of ["path-0", "path-3", "path-4"]) {
+        const before = connected.pieces.find((p) => p.id === id);
+        const moved = movedGroup.pieces.find((p) => p.id === id);
+        // Drag-end alignment removes the small rounding offsets from mouse input.
+        expect(Math.abs(moved.x - before.x - 25 / after.scale)).toBeLessThan(3);
+        expect(Math.abs(moved.y - before.y - 20 / after.scale)).toBeLessThan(3);
+        const leader = movedGroup.pieces.find((p) => p.id === "path-0");
+        expect(moved.x).toBeCloseTo(leader.x, 3);
+        expect(moved.y).toBeCloseTo(leader.y, 3);
+      }
+    });
+  }
   test(`puzzle ${puzzle}: cross-origin iframe viewport and refresh`, async ({
     page,
   }) => {

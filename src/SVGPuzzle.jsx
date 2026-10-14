@@ -9,6 +9,7 @@ const SVGPuzzle = ({
   width,
   height,
   pathInitializers,
+  edgeNeighbors,
   debugSnapOverlay,
   ...otherProps
 }) => {
@@ -105,7 +106,7 @@ const SVGPuzzle = ({
     return { scale: uniformScale, offsetX, offsetY };
   }, [width, height, svgWidth, svgHeight]);
   const { arePiecesSnapped, map } = usePuzzleSnap(
-    svgData,
+    edgeNeighbors,
     () => Object.fromEntries(pathPositions.entries()),
     () => scale,
   );
