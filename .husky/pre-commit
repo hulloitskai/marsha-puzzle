@@ -1,0 +1,2 @@
+mise exec -- npm run format:check
+mise exec -- npm run lint

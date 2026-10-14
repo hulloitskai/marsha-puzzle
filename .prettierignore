@@ -1,0 +1,5 @@
+dist
+node_modules
+src/assets
+CONTEXT.md
+docs/build-handoff.md

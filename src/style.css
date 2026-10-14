@@ -1,0 +1,22 @@
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+body {
+  background: white;
+  color: #111;
+  font-family: system-ui, sans-serif;
+}
+main {
+  padding: 2rem;
+}
+li {
+  margin-block: 1rem;
+}
+canvas {
+  display: block;
+  touch-action: none;
+}
